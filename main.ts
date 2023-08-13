@@ -47,7 +47,7 @@ const meter = initOTLP();
 
 // i.e. "us-east-4"
 const denoRegion = Deno.env.get("DENO_REGION") || "local-dev-or-digital-ocean";
-const orlySecret = Deno.env.get("ORLY_SECRET") || "sane-fallback-to-prevent-matching-on-empty";
+const orlySecret = Deno.env.get("ORLY_SECRET") || crypto.randomUUID();
 
 // A set of allowed paths and their related counter objects.
 const allowedPaths = {
