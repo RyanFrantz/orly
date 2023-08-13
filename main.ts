@@ -45,28 +45,27 @@ const initOTLP = () => {
 
 const meter = initOTLP();
 
-// Create an instrument to demo this in action.
-const requestCounter = meter.createCounter("requests");
-
 // i.e. "us-east-4"
 const denoRegion = Deno.env.get("DENO_REGION") || "local-dev-or-digital-ocean";
 const orlySecret = Deno.env.get("ORLY_SECRET") || "sane-fallback-to-prevent-matching-on-empty";
 
-const allowedPaths = [
-  /^loginFailed$/,
-  /^loginSuccess$/,
-  /^noteAdded$/,
-  /^profileViewed$/,
-  /^roleAdded$/,
-  /^roleUpdated$/,
-  /^signoutSuccess$/,
-  /^signupFailed$/,
-  /^signupSuccess$/,
-];
+// A set of allowed paths and their related counter objects.
+const allowedPaths = {
+  "loginFailed" : meter.createCounter("loginFailed"),
+  "loginSuccess": meter.createCounter("loginSuccess"),
+  "noteAdded": meter.createCounter("noteAdded"),
+  "profileViewed": meter.createCounter("profileViewed"),
+  "roleAdded": meter.createCounter("roleAdded"),
+  "roleUpdated": meter.createCounter("roleUpdated"),
+  "sentinel": meter.createCounter("sentinel"),
+  "signoutSuccess": meter.createCounter("signoutSuccess"),
+  "signupFailed": meter.createCounter("signupFailed"),
+  "signupSuccess": meter.createCounter("signupSuccess"),
+};
 
 // Return truthy if a match is found.
 const isAllowedPath = (path) => {
-  return allowedPaths.find((re) => path.match(re));
+  return Object.keys(allowedPaths).find((p) => path.match(new RegExp(`^${p}$`)));
 };
 
 const handler = (req: Request): Response => {
@@ -78,8 +77,8 @@ const handler = (req: Request): Response => {
     if (clientSecret == orlySecret) {
       const barePath = url.pathname.slice(1); // Strip the leading slash.
       if (isAllowedPath(barePath)) {
-        // TODO: Increment counter. Use DENO_REGION as an attribute.
-        requestCounter.add(1, { denoRegion: denoRegion });
+        const counter = allowedPaths[barePath];
+        counter.add(1, { denoRegion: denoRegion });
         responseCode = 200;
       } else {
         responseCode = 418;
