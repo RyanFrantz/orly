@@ -49,8 +49,8 @@ const meter = initOTLP();
 const requestCounter = meter.createCounter("requests");
 
 // i.e. "us-east-4"
-const denoRegion = Deno.env.get("DENO_REGION");
-const orlySecret = Deno.env.get("ORLY_SECRET");
+const denoRegion = Deno.env.get("DENO_REGION") || "local-dev-or-digital-ocean";
+const orlySecret = Deno.env.get("ORLY_SECRET") || "sane-fallback-to-prevent-matching-on-empty";
 
 const allowedPaths = [
   /^loginFailed$/,
@@ -90,4 +90,8 @@ const handler = (req: Request): Response => {
 };
 
 // Stand and deliver.
-Deno.serve({ port: 8888 }, handler);
+Deno.serve({
+  port: 443,
+  cert: await Deno.readTextFile("/etc/letsencrypt/live/orly.relaymetrics.pro/fullchain.pem"),
+  key: await Deno.readTextFile("/etc/letsencrypt/live/orly.relaymetrics.pro/privkey.pem"),
+}, handler);
