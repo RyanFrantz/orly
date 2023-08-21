@@ -17,7 +17,7 @@ const initOTLP = () => {
   // Register a service.name so this isn't set as 'unknown_service'.
   const resource = Resource.default().merge(
     new Resource({
-      "service.name": "trackjobs",
+      "service.name": "jaiobee",
     }),
   );
 
